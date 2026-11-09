@@ -425,10 +425,12 @@ public class FeignClientFactoryBean
 	}
 
 	protected <T> T loadBalance(Feign.Builder builder, FeignClientFactory context, HardCodedTarget<T> target) {
+		// 获取实例对象 Client 类型的
 		Client client = getOptional(context, Client.class);
 		if (client != null) {
 			builder.client(client);
 			applyBuildCustomizers(context, builder);
+			// 创建一个代理对象
 			Targeter targeter = get(context, Targeter.class);
 			return targeter.target(this, builder, context, target);
 		}
@@ -451,6 +453,7 @@ public class FeignClientFactoryBean
 		return null;
 	}
 
+	// 创建对象，核心方法入口
 	@Override
 	public Object getObject() {
 		return getTarget();
@@ -478,6 +481,7 @@ public class FeignClientFactoryBean
 				url = name;
 			}
 			url += cleanPath();
+			// 负载均衡调用
 			return (T) loadBalance(builder, feignClientFactory, new HardCodedTarget<>(type, name, url));
 		}
 		if (StringUtils.hasText(url) && !url.startsWith("http://") && !url.startsWith("https://")) {

@@ -148,9 +148,11 @@ class FeignClientsRegistrar implements ImportBeanDefinitionRegistrar, ResourceLo
 		this.resourceLoader = resourceLoader;
 	}
 
+	// 向spring容器中注入代理对象
 	@Override
 	public void registerBeanDefinitions(AnnotationMetadata metadata, BeanDefinitionRegistry registry) {
 		registerDefaultConfiguration(metadata, registry);
+		// 向IOC容器中注入相关Bean
 		registerFeignClients(metadata, registry);
 	}
 
@@ -174,9 +176,11 @@ class FeignClientsRegistrar implements ImportBeanDefinitionRegistrar, ResourceLo
 		Map<String, Object> attrs = metadata.getAnnotationAttributes(EnableFeignClients.class.getName());
 		final Class<?>[] clients = attrs == null ? null : (Class<?>[]) attrs.get("clients");
 		if (clients == null || clients.length == 0) {
+			// 扫描器
 			ClassPathScanningCandidateComponentProvider scanner = getScanner();
 			scanner.setResourceLoader(this.resourceLoader);
 			scanner.addIncludeFilter(new AnnotationTypeFilter(FeignClient.class));
+			// 需要扫描的包名
 			Set<String> basePackages = getBasePackages(metadata);
 			for (String basePackage : basePackages) {
 				candidateComponents.addAll(scanner.findCandidateComponents(basePackage));
@@ -201,6 +205,7 @@ class FeignClientsRegistrar implements ImportBeanDefinitionRegistrar, ResourceLo
 				String className = annotationMetadata.getClassName();
 				registerClientConfiguration(registry, name, className, attributes.get("configuration"));
 
+				// 注册相关bean
 				registerFeignClient(registry, annotationMetadata, attributes);
 			}
 		}
@@ -222,6 +227,7 @@ class FeignClientsRegistrar implements ImportBeanDefinitionRegistrar, ResourceLo
 	private void eagerlyRegisterFeignClientBeanDefinition(String className, Map<String, Object> attributes,
 			BeanDefinitionRegistry registry) {
 		validate(attributes);
+		// 重点 FeignClientFactoryBean
 		BeanDefinitionBuilder definition = BeanDefinitionBuilder.genericBeanDefinition(FeignClientFactoryBean.class);
 		definition.addPropertyValue("url", getUrl(null, attributes));
 		definition.addPropertyValue("path", getPath(null, attributes));
